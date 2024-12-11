@@ -38,3 +38,54 @@ export const signInFormControls = [
     type: "password",
   },
 ];
+
+export const searchFormControls = [
+  {
+    id: "searchText",
+    label: "Search",
+    placeholder: "Search...",
+    componentType: "input",
+    type: "text",
+  },
+];
+
+export const productFormControls = [
+  {
+    id: "productName",
+    label: "Product Name",
+    placeholder: "Enter the product name...",
+    componentType: "input",
+    type: "text",
+  },
+  {
+    id: "productRate",
+    label: "Product Rate",
+    placeholder: "Enter the product rate...",
+    componentType: "input",
+    type: "number",
+  },
+];
+
+export const purchaseFormControls = [
+  {
+    id: "productName",
+    label: "Search Product",
+    placeholder: "Select a product...",
+    componentType: "searchInput",
+    type: "text",
+  },
+  {
+    id: "purchaseCost",
+    label: "Cost",
+    placeholder: "Enter the cost...",
+    componentType: "input",
+    type: "number",
+  },
+  {
+    id: "purchaseQuantity",
+    label: "Quantity",
+    placeholder: "Enter the quantity...",
+    componentType: "input",
+    type: "number",
+  }
+];

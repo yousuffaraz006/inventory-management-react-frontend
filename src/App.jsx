@@ -5,10 +5,8 @@ import CommonLayout from "./components/common-layout";
 import HomePage from "./pages/home";
 import NotFound from "./pages/notFound";
 import Products from "./pages/products";
-import SalePage from "./pages/sale";
 import SalesHistory from "./pages/salesHistory";
 import PurchasesHistory from "./pages/purchasesHistory";
-import PurchasePage from "./pages/purchase";
 import Profile from "./pages/profile";
 
 function App() {
@@ -28,9 +26,7 @@ function App() {
         <Route path="" element={<HomePage />} />
         <Route path="profile" element={<Profile />} />
         <Route path="products" element={<Products />} />
-        <Route path="sale" element={<SalePage />} />
         <Route path="sales" element={<SalesHistory />} />
-        <Route path="purchase" element={<PurchasePage />} />
         <Route path="purchases" element={<PurchasesHistory />} />
       </Route>
       <Route path="*" element={<NotFound />} />

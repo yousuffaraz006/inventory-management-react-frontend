@@ -9,12 +9,10 @@ import { useContext } from "react";
 function SignUp() {
   const {
     setLoading,
-    firstname,
-    lastname,
+    companyName,
     username,
     password,
-    setFirstname,
-    setLastname,
+    setCompanyName,
     setUsername,
     setPassword,
     toast,
@@ -26,11 +24,9 @@ function SignUp() {
     setLoading(true);
     setIsAuthorized(true);
     try {
-      const first_name = firstname;
-      const last_name = lastname;
+      const first_name = companyName;
       await api.post("/user/register/", {
         first_name,
-        last_name,
         username,
         password,
       });
@@ -43,8 +39,7 @@ function SignUp() {
         description:
           "Welcome to ABC XYZ Co. We hope you a seemingless expperience.",
       });
-      setFirstname("");
-      setLastname("");
+      setCompanyName("");
       setUsername("");
       setPassword("");
     } catch (error) {

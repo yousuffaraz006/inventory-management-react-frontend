@@ -3,10 +3,8 @@ import {
   ChevronUp,
   Home,
   Inbox,
-  LogOut,
   Search,
-  Settings,
-  User
+  User,
 } from "lucide-react";
 import {
   Sidebar,
@@ -33,7 +31,8 @@ import { ContextComponent } from "@/context";
 import { Link } from "react-router-dom";
 
 export function AppSidebar() {
-  const { navigate, toast } = useContext(ContextComponent);
+  const { navigate, toast, user, lastPart } = useContext(ContextComponent);
+  const profile = lastPart === "profile" ? "active" : "null";
   const items = [
     {
       title: "Home",
@@ -68,13 +67,18 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarContent className="bg-black">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-white">Application</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-white">
+            Application
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <Link to={`/${item.url}`}>
+                    <Link
+                      to={`/${item.url}`}
+                      className={lastPart === item.url ? "active" : ""}
+                    >
                       <item.icon />
                       <span>{item.title}</span>
                     </Link>
@@ -90,8 +94,8 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <SidebarMenuButton className="bg-black text-white">
-                  <User /> Username
+                <SidebarMenuButton className={`bg-black text-white ${profile}`}>
+                  <User /> {localStorage.getItem("company_name")}
                   <ChevronUp className="ml-auto" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
@@ -100,7 +104,7 @@ export function AppSidebar() {
                 className="w-[--radix-popper-anchor-width] bg-black text-white"
               >
                 <Link to={"/profile"}>
-                  <DropdownMenuItem className="text-white font-normal">
+                  <DropdownMenuItem className={`text-white font-normal ${profile}`}>
                     Profile
                   </DropdownMenuItem>
                 </Link>

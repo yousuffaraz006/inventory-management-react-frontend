@@ -6,7 +6,7 @@ import { SidebarProvider, SidebarTrigger } from "../ui/sidebar";
 import { AppSidebar } from "../common-sidebar";
 
 function CommonLayout() {
-  const { isAuthorized, setIsAuthorized, auth } = useContext(ContextComponent);
+  const { isAuthorized, setIsAuthorized, auth, setSearchText, lastPart } = useContext(ContextComponent);
   useEffect(() => {
     const checkAuthorization = async () => {
       try {
@@ -15,13 +15,15 @@ function CommonLayout() {
         setIsAuthorized(false);
       }
     };
-
     checkAuthorization();
   }, []);
+  useEffect(() => {
+    setSearchText("");
+  }, [lastPart]);
   if (isAuthorized === null) {
     return (
       <Skeleton
-        className={`w-full h-[740px]  rounded-[6px] bg-black opacity-50`}
+        className={`w-full h-screen  rounded-[6px] bg-black opacity-50`}
       />
     );
   }
