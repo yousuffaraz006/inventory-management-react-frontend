@@ -27,11 +27,12 @@ function Products() {
     toast,
     getProducts,
     getPurchases,
-    purchasesList,
+    getSales,
   } = useContext(ContextComponent);
   useEffect(() => {
     getProducts();
     getPurchases();
+    getSales();
   }, []);
   useEffect(() => {
     api
@@ -50,8 +51,8 @@ function Products() {
     setLoading(true);
     await api
       .post("/products/", {
-        name: productName,
-        rate: productRate,
+        product_name: productName,
+        product_rate: productRate,
       })
       .then(() => {
         setShowDialog(false);
@@ -70,8 +71,8 @@ function Products() {
     setLoading(true);
     await api
       .put(`/product/${currentUpdateId}/`, {
-        name: productName,
-        rate: productRate,
+        product_name: productName,
+        product_rate: productRate,
       })
       .then(() => {
         setShowDialog(false);
@@ -103,7 +104,6 @@ function Products() {
       });
   };
   const handleSubmit = async (e) => {
-    setLoading(true);
     currentUpdateId
       ? updateProduct(e)
       : currentDeleteId
@@ -113,7 +113,7 @@ function Products() {
   if (loading) {
     return (
       <Skeleton
-        className={`w-full h-screen  rounded-[6px] bg-black opacity-50`}
+        className={"w-full h-screen rounded-none bg-black opacity-70"}
       />
     );
   }

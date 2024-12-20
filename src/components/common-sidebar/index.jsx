@@ -40,7 +40,7 @@ export function AppSidebar() {
       icon: Home,
     },
     {
-      title: "Products Page",
+      title: "Products",
       url: "products",
       icon: Inbox,
     },
@@ -95,7 +95,7 @@ export function AppSidebar() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton className={`bg-black text-white ${profile}`}>
-                  <User /> {localStorage.getItem("company_name")}
+                  <User /> {localStorage.getItem("name")}
                   <ChevronUp className="ml-auto" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>

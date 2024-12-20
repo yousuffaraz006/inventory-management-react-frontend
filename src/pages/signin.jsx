@@ -1,6 +1,7 @@
 import api from "@/api";
 import CommonButton from "@/components/common-button";
 import CommonForm from "@/components/common-form";
+import { Skeleton } from "@/components/ui/skeleton";
 import { signInFormControls } from "@/config";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "@/constants";
 import { ContextComponent } from "@/context";
@@ -28,7 +29,7 @@ function SignIn() {
       navigate("/");
       toast({
         title: "Signed In Successfully",
-        description: `Welcome back, Mr. ${username}!`,
+        description: `Logged in as ${username}!`,
       });
       setUsername("");
       setPassword("");
@@ -37,11 +38,8 @@ function SignIn() {
         title: "ERROR!",
         description: "" + error,
       });
-    } finally {
-      setLoading(false);
     }
   };
-
   return (
     <div className="flex flex-auto flex-col min-h-screen h-full">
       <div className="flex flex-col h-full justify-center items-center bg-white">

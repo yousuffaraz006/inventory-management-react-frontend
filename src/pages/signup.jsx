@@ -10,9 +10,13 @@ function SignUp() {
   const {
     setLoading,
     companyName,
+    firstName,
+    lastName,
     username,
     password,
     setCompanyName,
+    setFirstName,
+    setLastName,
     setUsername,
     setPassword,
     toast,
@@ -24,22 +28,23 @@ function SignUp() {
     setLoading(true);
     setIsAuthorized(true);
     try {
-      const first_name = companyName;
       await api.post("/user/register/", {
-        first_name,
-        username,
-        password,
+        first_name: firstName,
+        last_name: lastName,
+        username: username,
+        password: password,
       });
       const { data } = await api.post("/token/", { username, password });
       localStorage.setItem(ACCESS_TOKEN, data.access);
       localStorage.setItem(REFRESH_TOKEN, data.refresh);
-      navigate("/");
+      navigate("/company");
       toast({
         title: "Signed Up Successfully",
         description:
           "Welcome to ABC XYZ Co. We hope you a seemingless expperience.",
       });
-      setCompanyName("");
+      setFirstName("");
+      setLastName("");
       setUsername("");
       setPassword("");
     } catch (error) {

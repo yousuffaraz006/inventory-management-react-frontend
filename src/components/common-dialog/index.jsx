@@ -48,6 +48,11 @@ function CommonDialog({
     showDropdown,
     setShowDropdown,
     toast,
+    setFirstName,
+    setLastName,
+    setUsername,
+    setPassword,
+    setPhoneNo,
     formatToIndianNumberSystem,
   } = useContext(ContextComponent);
   const [dropdownRow, setDropdownRow] = useState(null);
@@ -66,12 +71,17 @@ function CommonDialog({
     setShowDialog(false);
     setCurrentDeleteId(null);
     setCurrentUpdateId(null);
+    setFirstName("");
+    setLastName("");
+    setUsername("");
+    setPassword("");
     setProductName("");
     setProductRate("");
     setActiveRow(0);
     setAddedProducts([]);
     setDropdownRow(null);
     setTotalAmt(0);
+    setPhoneNo("");
   };
 
   useEffect(() => {

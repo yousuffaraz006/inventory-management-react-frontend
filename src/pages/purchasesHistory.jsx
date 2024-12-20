@@ -10,14 +10,13 @@ import {
 } from "@/components/ui/accordion";
 import { purchaseFormControls } from "@/config";
 import { ContextComponent } from "@/context";
-import { useContext, useEffect, useState } from "react";
-import "select2/dist/css/select2.min.css";
-import "select2/dist/js/select2.min.js";
-import $ from "jquery";
+import { useContext, useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function PurchasesHistory() {
   const {
     setLoading,
+    loading,
     setPurchasesList,
     purchasesList,
     formatToIndianNumberSystem,
@@ -47,10 +46,10 @@ function PurchasesHistory() {
       });
   }, [searchText]);
   const getProductIdByName = (name) => {
-    const product = productsList.find((item) => item.name === name);
+    const product = productsList.find((item) => item.product_name === name);
     return product ? product.id : null; // Return the ID or null if not found
   };
-  const total = productsSet.reduce(
+  const purchase_total = productsSet.reduce(
     (acc, product) =>
       acc +
       parseFloat(product.purchaseCost) * parseFloat(product.purchaseQuantity),
@@ -62,11 +61,11 @@ function PurchasesHistory() {
     api
       .post("/purchases/", {
         items: productsSet?.map((product) => ({
-          product: getProductIdByName(product.productName),
-          cost: product.purchaseCost,
-          quantity: product.purchaseQuantity,
+          p_item_product: getProductIdByName(product.productName),
+          p_item_cost: product.purchaseCost,
+          p_item_quantity: product.purchaseQuantity,
         })),
-        total,
+        purchase_total,
       })
       .then((res) => {
         if (res.status === 201) {
@@ -97,9 +96,16 @@ function PurchasesHistory() {
   const productNames = productsList.map((product) => {
     return {
       id: product.id,
-      name: product.name,
+      name: product.product_name,
     };
   });
+  if (loading) {
+    return (
+      <Skeleton
+        className={"w-full h-screen rounded-none bg-black opacity-70"}
+      />
+    );
+  }
   return (
     <div className="px-5">
       <Header />
@@ -117,9 +123,10 @@ function PurchasesHistory() {
               className="bg-blue-400 text-black rounded"
             >
               <AccordionTrigger className="flex">
-                <p>{item.slug}</p>
-                <p>{item.date}</p>
-                <p>Total : &#8377;{formatToIndianNumberSystem(item.total)}</p>
+                <p>{item.purchase_slug}</p>
+                <p>By :-{item.purchase_created_by}</p>
+                <p>{item.purchase_date}</p>
+                <p>Total : &#8377;{formatToIndianNumberSystem(item.purchase_total)}</p>
               </AccordionTrigger>
               <AccordionContent className="bg-gray-300 rounded text-black p-3">
                 <div
@@ -140,12 +147,12 @@ function PurchasesHistory() {
                       gridTemplateColumns: "3fr 0.75fr 0.25fr",
                     }}
                   >
-                    <p>{item.product.name}</p>
+                    <p>{item.p_item_product.product_name}</p>
                     <p>
                       &#8377;
-                      {formatToIndianNumberSystem(item.cost)}
+                      {formatToIndianNumberSystem(item.p_item_cost)}
                     </p>
-                    <p>{item.quantity}</p>
+                    <p>{item.p_item_quantity}</p>
                   </div>
                 ))}
               </AccordionContent>

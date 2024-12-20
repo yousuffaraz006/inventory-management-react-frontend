@@ -6,9 +6,10 @@ import CommonForm from "../common-form";
 import { searchFormControls } from "@/config";
 
 function Header() {
-  const { toast, navigate } = useContext(ContextComponent);
+  const { toast, navigate, resetStates } = useContext(ContextComponent);
   async function handleLogout() {
     localStorage.clear();
+    resetStates();
     navigate("/signin");
     toast({
       title: "Logging Out",
@@ -23,9 +24,9 @@ function Header() {
       <div className="container mx-auto h-16">
         <div className="flex h-[64px] items-center w-full justify-between ">
           <div className="w-auto">
-            <h1 className="text-xl">Welcome to ABC XYZ Co.</h1>
+            <h1 className="text-xl">{}</h1>
           </div>
-          <div className="w-[50%]">
+          <div className="w-[50%] mb-4">
             <CommonForm
               formControls={searchFormControls}
               btnText={"Search"}
@@ -34,17 +35,6 @@ function Header() {
               handleSubmit={handleSearch}
             />
           </div>
-          {/* <input
-              className="form-control"
-              type="search"
-              placeholder="Search"
-              aria-label="Search"
-              // value={searchText}
-              // onChange={(e) => handleSearchText(e.target.value)}
-            />
-            <button className="btn btn-outline-success" type="submit">
-              Search
-            </button> */}
           <div>
             <LogOut
               onClick={handleLogout}

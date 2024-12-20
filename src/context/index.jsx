@@ -1,9 +1,10 @@
 import api from "@/api";
 import {
   ACCESS_TOKEN,
-  COMPANY_NAME,
   REFRESH_TOKEN,
   USER_NAME,
+  USER_GROUP,
+  COMPANY_NAME,
 } from "@/constants";
 import { useToast } from "@/hooks/use-toast";
 import { jwtDecode } from "jwt-decode";
@@ -16,15 +17,24 @@ function ProviderComponent({ children }) {
   const [isAuthorized, setIsAuthorized] = useState(null);
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [companyName, setCompanyName] = useState("");
+  const [companyPhone, setCompanyPhone] = useState("");
+  const [companyEmail, setCompanyEmail] = useState("");
+  const [companyAddress, setCompanyAddress] = useState("");
   const [searchText, setSearchText] = useState("");
   const [productsList, setProductsList] = useState([]);
   const [productName, setProductName] = useState("");
   const [productRate, setProductRate] = useState("");
   const [purchasesList, setPurchasesList] = useState([]);
   const [purchaseItemsList, setPurchaseItemsList] = useState([]);
+  const [salesList, setSalesList] = useState([]);
+  const [customersList, setCustomersList] = useState([]);
+  const [customerName, setCustomerName] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
   const [showDialog, setShowDialog] = useState(false);
   const [currentUpdateId, setCurrentUpdateId] = useState(null);
   const [currentDeleteId, setCurrentDeleteId] = useState(null);
@@ -36,8 +46,11 @@ function ProviderComponent({ children }) {
   const [productsSet, setProductsSet] = useState([
     { productName: "", purchaseCost: "", purchaseQuantity: "" },
   ]);
+  const [employeesList, setEmployeesList] = useState([]);
+  const [phoneNo, setPhoneNo] = useState("");
+  const [check, setCheck] = useState(false);
+  const [employee, setEmployee] = useState("");
   const { toast } = useToast();
-  const { slug } = useParams();
   const navigate = useNavigate();
   const formData = useForm({
     defaultValues: {
@@ -74,8 +87,9 @@ function ProviderComponent({ children }) {
       return;
     }
     const decoded = jwtDecode(token);
+    localStorage.setItem(USER_NAME, decoded.name);
+    localStorage.setItem(USER_GROUP, decoded.groups);
     localStorage.setItem(COMPANY_NAME, decoded.company_name);
-    localStorage.setItem(USER_NAME, decoded.username);
     setUser(decoded.username);
     const tokenExpiration = decoded.exp;
     const now = Date.now() / 1000;
@@ -85,8 +99,32 @@ function ProviderComponent({ children }) {
       setIsAuthorized(true);
     }
   };
+  const getCompany = async () => {
+    await api
+      .get("/company/")
+      .then((res) => {
+        localStorage.setItem("company_name", res.data.company_name);
+        res.data.company_name === null ? "" : setCompanyName(res.data.company_name);
+        setCompanyName(res.data.company_name);
+        setCompanyPhone(res.data.company_phone);
+        setCompanyEmail(res.data.company_email);
+        setCompanyAddress(res.data.company_address);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+  const getEmployees = async () => {
+    await api
+      .get("/")
+      .then((res) => {
+        setEmployeesList(res.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
   const getProducts = async () => {
-    setLoading(true);
     await api
       .get("/products/")
       .then((res) => {
@@ -94,15 +132,12 @@ function ProviderComponent({ children }) {
       })
       .then((data) => {
         setProductsList(data);
-        setLoading(false);
       })
       .catch((err) => {
         console.log(err);
-        setLoading(false);
       });
-  };
-  const getPurchases = async () => {
-    setLoading(true);
+    };
+    const getPurchases = async () => {
     await api
       .get("/purchases/")
       .then((res) => {
@@ -110,11 +145,36 @@ function ProviderComponent({ children }) {
       })
       .then((data) => {
         setPurchasesList(data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+  const getCustomers = async () => {
+    await api
+      .get("/customers/")
+      .then((res) => {
+        return res.data;
+      })
+      .then((data) => {
+        setCustomersList(data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+  const getSales = async () => {
+    await api
+      .get("/sales/")
+      .then((res) => {
+        return res.data;
+      })
+      .then((data) => {
+        setSalesList(data);
         setLoading(false);
       })
       .catch((err) => {
         console.log(err);
-        setLoading(false);
       });
   };
   const formatToIndianNumberSystem = (num) => {
@@ -131,6 +191,38 @@ function ProviderComponent({ children }) {
       : formattedIntegerPart;
   };
 
+  const resetStates = () => {
+    setIsAuthorized(null);
+    setLoading(false);
+    setUser(null);
+    setFirstName("");
+    setLastName("");
+    setUsername("");
+    setPassword("");
+    setCompanyName("");
+    setSearchText("");
+    setProductsList([]);
+    setProductName("");
+    setProductRate("");
+    setPurchasesList([]);
+    setPurchaseItemsList([]);
+    setShowDialog(false);
+    setCurrentUpdateId(null);
+    setCurrentDeleteId(null);
+    setSearchInputValue("");
+    setShowDropdown(false);
+    setFilteredOptions([]);
+    setPurchaseCost("");
+    setPurchaseQuantity("");
+    setProductsSet([
+      { productName: "", purchaseCost: "", purchaseQuantity: "" },
+    ]);
+    setEmployeesList([]);
+    setPhoneNo("");
+    setCheck(false);
+    setEmployee("");
+  };
+
   return (
     <ContextComponent.Provider
       value={{
@@ -140,12 +232,22 @@ function ProviderComponent({ children }) {
         setLoading,
         user,
         setUser,
+        firstName,
+        setFirstName,
+        lastName,
+        setLastName,
         username,
         setUsername,
         password,
         setPassword,
         companyName,
         setCompanyName,
+        companyPhone,
+        setCompanyPhone,
+        companyEmail,
+        setCompanyEmail,
+        companyAddress,
+        setCompanyAddress,
         searchText,
         setSearchText,
         productsList,
@@ -158,6 +260,14 @@ function ProviderComponent({ children }) {
         setPurchasesList,
         purchaseItemsList,
         setPurchaseItemsList,
+        salesList,
+        setSalesList,
+        customersList,
+        setCustomersList,
+        customerName,
+        setCustomerName,
+        customerEmail,
+        setCustomerEmail,
         showDialog,
         setShowDialog,
         currentUpdateId,
@@ -176,15 +286,27 @@ function ProviderComponent({ children }) {
         setPurchaseQuantity,
         productsSet,
         setProductsSet,
+        employeesList,
+        setEmployeesList,
+        phoneNo,
+        setPhoneNo,
+        check,
+        setCheck,
+        employee,
+        setEmployee,
         toast,
-        slug,
         navigate,
         formData,
         lastPart,
         auth,
+        getCompany,
+        getEmployees,
         getProducts,
         getPurchases,
+        getCustomers,
+        getSales,
         formatToIndianNumberSystem,
+        resetStates,
       }}
     >
       {children}
