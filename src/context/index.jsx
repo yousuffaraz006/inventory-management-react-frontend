@@ -16,6 +16,7 @@ export const ContextComponent = createContext(null);
 function ProviderComponent({ children }) {
   const [isAuthorized, setIsAuthorized] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
   const [user, setUser] = useState(null);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -30,8 +31,10 @@ function ProviderComponent({ children }) {
   const [productName, setProductName] = useState("");
   const [productRate, setProductRate] = useState("");
   const [purchasesList, setPurchasesList] = useState([]);
+  const [allPurchasesList, setAllPurchasesList] = useState([]);
   const [purchaseItemsList, setPurchaseItemsList] = useState([]);
   const [salesList, setSalesList] = useState([]);
+  const [allSalesList, setAllSalesList] = useState([]);
   const [customersList, setCustomersList] = useState([]);
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
@@ -46,6 +49,10 @@ function ProviderComponent({ children }) {
   const [productsSet, setProductsSet] = useState([
     { productName: "", purchaseCost: "", purchaseQuantity: "" },
   ]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(2);
+  const [totalPages, setTotalPages] = useState(0);
+  const [mode, setMode] = useState("Sale");
   const [employeesList, setEmployeesList] = useState([]);
   const [phoneNo, setPhoneNo] = useState("");
   const [check, setCheck] = useState(false);
@@ -100,19 +107,26 @@ function ProviderComponent({ children }) {
     }
   };
   const getCompany = async () => {
-    await api
+    try{
+      await api
       .get("/company/")
       .then((res) => {
         localStorage.setItem("company_name", res.data.company_name);
-        res.data.company_name === null ? "" : setCompanyName(res.data.company_name);
+        res.data.company_name === null
+        ? ""
+        : setCompanyName(res.data.company_name);
         setCompanyName(res.data.company_name);
         setCompanyPhone(res.data.company_phone);
         setCompanyEmail(res.data.company_email);
         setCompanyAddress(res.data.company_address);
       })
       .catch((err) => {
+        navigate("/signin")
         console.log(err);
-      });
+      });  
+    } catch(err) {
+      console.log(err)
+    }
   };
   const getEmployees = async () => {
     await api
@@ -124,27 +138,42 @@ function ProviderComponent({ children }) {
         console.log(err);
       });
   };
-  const getProducts = async () => {
-    await api
-      .get("/products/")
-      .then((res) => {
-        return res.data;
-      })
-      .then((data) => {
-        setProductsList(data);
-      })
-      .catch((err) => {
-        console.log(err);
+  const computeStock = (products, purchases, sales) => {
+    return products.map((product) => {
+      const purchaseStock = purchases
+        .flatMap((purchase) => purchase.items) // Extract all items from purchases
+        .filter((item) => item.p_item_product.id === product.id) // Match items to the current product
+        .reduce((total, item) => total + item.p_item_quantity, 0);
+      const saleStock = sales
+        .flatMap((sale) => sale.items) // Extract all items from purchases
+        .filter((item) => item.s_item_product.id === product.id) // Match items to the current product
+        .reduce((total, item) => total + item.s_item_quantity, 0);
+      const stock = purchaseStock - saleStock;
+      return { ...product, stock };
+    });
+  };
+  const getPurchases = async (page) => {
+    try {
+      const res = await api.get(
+        `/purchases/?page=${page}&page_size=${pageSize}`
+      );
+      setPurchasesList(res.data.results);
+      setCurrentPage(page);
+      setTotalPages(Math.ceil(res.data.count / pageSize));
+    } catch (err) {
+      toast({
+        title: `Error occurred: ${err.message}`,
       });
-    };
-    const getPurchases = async () => {
+    }
+  };
+  const getAllPurchases = async () => {
     await api
-      .get("/purchases/")
+      .get("/all-purchases/")
       .then((res) => {
         return res.data;
       })
       .then((data) => {
-        setPurchasesList(data);
+        setAllPurchasesList(data);
       })
       .catch((err) => {
         console.log(err);
@@ -152,8 +181,8 @@ function ProviderComponent({ children }) {
   };
   const getCustomers = async () => {
     await api
-      .get("/customers/")
-      .then((res) => {
+    .get("/customers/")
+    .then((res) => {
         return res.data;
       })
       .then((data) => {
@@ -163,20 +192,77 @@ function ProviderComponent({ children }) {
         console.log(err);
       });
   };
-  const getSales = async () => {
+  const getSales = async (page) => {
+    try {
+      const res = await api.get(
+        `/sales/?page=${page}&page_size=${pageSize}`
+      );
+      setSalesList(res.data.results);
+      setCurrentPage(page);
+      setTotalPages(Math.ceil(res.data.count / pageSize));
+    } catch (err) {
+      toast({
+        title: `Error occurred: ${err.message}`,
+      });
+    }
+  };
+  const getAllSales = async () => {
     await api
-      .get("/sales/")
+      .get("/all-sales/")
       .then((res) => {
         return res.data;
       })
       .then((data) => {
-        setSalesList(data);
-        setLoading(false);
+        setAllSalesList(data);
       })
       .catch((err) => {
         console.log(err);
       });
-  };
+    };
+    // const getProducts = async () => {
+    //   await api
+    //     .get("/products/")
+    //     .then((res) => {
+    //       return res.data;
+    //     })
+    //     .then((data) => {
+    //       setProductsList(data);
+    //       console.log(purchasesList);
+    //       const stocked = computeStock(
+    //         data,
+    //         allPurchasesList,
+    //         allSalesList
+    //       );
+    //       setProductsList(stocked);
+    //     })
+    //     .catch((err) => {
+    //       console.log(err);
+    //     });
+    // };
+    const getProducts = async () => {
+      try {
+        // Fetch products
+        const productsRes = await api.get("/products/");
+        const products = productsRes.data;
+    
+        // Fetch purchases and sales sequentially
+        const purchasesRes = await api.get("/all-purchases/");
+        const purchases = purchasesRes.data;
+        setAllPurchasesList(purchases);
+    
+        const salesRes = await api.get("/all-sales/");
+        const sales = salesRes.data;
+        setAllSalesList(sales);
+    
+        // Compute stock after all data is available
+        const stockedProducts = computeStock(products, purchases, sales);
+        setProductsList(stockedProducts);
+    
+      } catch (error) {
+        console.log("Error fetching data:", error);
+      }
+    };
+    
   const formatToIndianNumberSystem = (num) => {
     const numStr = num.toString();
     const [integerPart, decimalPart] = numStr.split(".");
@@ -230,6 +316,8 @@ function ProviderComponent({ children }) {
         setIsAuthorized,
         loading,
         setLoading,
+        error,
+        setError,
         user,
         setUser,
         firstName,
@@ -258,10 +346,14 @@ function ProviderComponent({ children }) {
         setProductRate,
         purchasesList,
         setPurchasesList,
+        allPurchasesList,
+        setAllPurchasesList,
         purchaseItemsList,
         setPurchaseItemsList,
         salesList,
         setSalesList,
+        allSalesList,
+        setAllSalesList,
         customersList,
         setCustomersList,
         customerName,
@@ -286,6 +378,14 @@ function ProviderComponent({ children }) {
         setPurchaseQuantity,
         productsSet,
         setProductsSet,
+        currentPage,
+        setCurrentPage,
+        pageSize,
+        setPageSize,
+        totalPages,
+        setTotalPages,
+        mode,
+        setMode,
         employeesList,
         setEmployeesList,
         phoneNo,
@@ -303,8 +403,10 @@ function ProviderComponent({ children }) {
         getEmployees,
         getProducts,
         getPurchases,
+        getAllPurchases,
         getCustomers,
         getSales,
+        getAllSales,
         formatToIndianNumberSystem,
         resetStates,
       }}

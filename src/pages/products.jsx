@@ -25,20 +25,43 @@ function Products() {
     currentUpdateId,
     searchText,
     toast,
+    allPurchasesList,
+    allSalesList,
     getProducts,
-    getPurchases,
-    getSales,
+    getAllPurchases,
+    getAllSales,
   } = useContext(ContextComponent);
   useEffect(() => {
-    getProducts();
-    getPurchases();
-    getSales();
+    (async () => {
+      await getAllPurchases();
+      await getAllSales();
+      await getProducts();
+    })();
   }, []);
+  const computeStock = (products, purchases, sales) => {
+    return products.map((product) => {
+      const purchaseStock = purchases
+        .flatMap((purchase) => purchase.items) // Extract all items from purchases
+        .filter((item) => item.p_item_product.id === product.id) // Match items to the current product
+        .reduce((total, item) => total + item.p_item_quantity, 0);
+      const saleStock = sales
+        .flatMap((sale) => sale.items) // Extract all items from purchases
+        .filter((item) => item.s_item_product.id === product.id) // Match items to the current product
+        .reduce((total, item) => total + item.s_item_quantity, 0);
+      const stock = purchaseStock - saleStock;
+      return { ...product, stock };
+    });
+  };
   useEffect(() => {
     api
       .get(`http://127.0.0.1:8000/search-products/?search=${searchText}`)
       .then((res) => {
-        setProductsList(res.data);
+        const enrichedProducts = computeStock(
+          res.data,
+          allPurchasesList,
+          allSalesList
+        );
+        setProductsList(enrichedProducts);
       })
       .catch((err) => {
         toast({

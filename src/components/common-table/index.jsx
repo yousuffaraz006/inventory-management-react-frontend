@@ -20,17 +20,21 @@ function CommonTable({ list, item }) {
     setProductName,
     setProductRate,
     formatToIndianNumberSystem,
-    getPurchases,
+    getAllPurchases,
     getProducts,
     purchasesList,
     setProductsList,
     productsList,
     salesList,
   } = useContext(ContextComponent);
-  useEffect(() => {
-    getProducts();
-    getPurchases();
-  }, []);
+  // useEffect(() => {
+  //   const enrichedProducts = computeStock(
+  //     productsList,
+  //     purchasesList,
+  //     salesList
+  //   );
+  //   setProductsList(enrichedProducts);
+  // }, []);
   const productDetail = async (id) => {
     await api
       .get(`/product/${id}/`)
@@ -59,19 +63,17 @@ function CommonTable({ list, item }) {
       return { ...product, stock };
     });
   };
-  useEffect(() => {
-    const enrichedProducts = computeStock(productsList, purchasesList, salesList);
-    setProductsList(enrichedProducts);
-  }, [purchasesList]);
-  // const employerPresent = localStorage.getItem("groups") === "employer"
-
   return (
     <Table className="w-full">
       <TableHeader>
         <TableRow
           className="grid grid-cols-5 gap-4 mt-3"
           style={{
-            gridTemplateColumns: `${localStorage.getItem("groups") === "employer" ? "0.75fr 0.75fr" : ""} 2fr 1fr 0.5fr 0.5fr 0.5fr`,
+            gridTemplateColumns: `${
+              localStorage.getItem("groups") === "employer"
+                ? "0.75fr 0.75fr"
+                : ""
+            } 2fr 1fr 0.5fr 0.5fr 0.5fr`,
           }}
         >
           {localStorage.getItem("groups") === "employer" && (
@@ -98,7 +100,11 @@ function CommonTable({ list, item }) {
                 key={item.id}
                 className="grid grid-cols-5 gap-4 hover:bg-blue-400 cursor-pointer"
                 style={{
-                  gridTemplateColumns: `${localStorage.getItem("groups") === "employer" ? "0.75fr 0.75fr" : ""} 2fr 1fr 0.5fr 0.5fr 0.5fr`,
+                  gridTemplateColumns: `${
+                    localStorage.getItem("groups") === "employer"
+                      ? "0.75fr 0.75fr"
+                      : ""
+                  } 2fr 1fr 0.5fr 0.5fr 0.5fr`,
                 }}
               >
                 {localStorage.getItem("groups") === "employer" && (

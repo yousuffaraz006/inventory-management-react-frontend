@@ -228,7 +228,6 @@ function HomePage() {
       {localStorage.getItem(USER_GROUP) === "employer" && <Header />}
       {localStorage.getItem(USER_GROUP) === "employer" ? (
         <EmployerView
-          // employeesList={employeesList}
           navigate={navigate}
           setShowDialog={setShowDialog}
         />

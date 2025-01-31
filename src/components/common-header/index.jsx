@@ -29,7 +29,6 @@ function Header() {
           <div className="w-[50%] mb-4">
             <CommonForm
               formControls={searchFormControls}
-              btnText={"Search"}
               buttonDisable={true}
               labelDisable={true}
               handleSubmit={handleSearch}

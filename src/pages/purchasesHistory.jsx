@@ -1,6 +1,5 @@
 import api from "@/api";
 import CommonButton from "@/components/common-button";
-import CommonDialog from "@/components/common-dialog";
 import Header from "@/components/common-header";
 import {
   Accordion,
@@ -8,10 +7,25 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { purchaseFormControls } from "@/config";
 import { ContextComponent } from "@/context";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 function PurchasesHistory() {
   const {
@@ -20,85 +34,60 @@ function PurchasesHistory() {
     setPurchasesList,
     purchasesList,
     formatToIndianNumberSystem,
-    setShowDialog,
     searchText,
-    productsList,
     getProducts,
     getPurchases,
-    productsSet,
     toast,
-    setProductsSet,
+    navigate,
+    currentPage,
+    pageSize,
+    setPageSize,
+    setMode,
+    totalPages,
   } = useContext(ContextComponent);
   useEffect(() => {
-    getPurchases();
+    getPurchases(currentPage, pageSize);
     getProducts();
-  }, []);
+  }, [currentPage, pageSize]);
   useEffect(() => {
-    api
-      .get(`http://127.0.0.1:8000/search-purchases/?search=${searchText}`)
-      .then((res) => {
-        setPurchasesList(res.data);
-      })
-      .catch((err) => {
-        toast({
-          title: "Error occured : " + err.message,
-        });
-      });
+    {
+      searchText.length > 1
+        ? api
+            .get(`http://127.0.0.1:8000/search-purchases/?search=${searchText}`)
+            .then((res) => {
+              setPurchasesList(res.data);
+              console.log(res.data);
+            })
+            .catch((err) => {
+              toast({
+                title: "Error occured : " + err.message,
+              });
+            })
+        : getPurchases(currentPage, pageSize);
+    }
   }, [searchText]);
-  const getProductIdByName = (name) => {
-    const product = productsList.find((item) => item.product_name === name);
-    return product ? product.id : null; // Return the ID or null if not found
+
+  const middlePage = Math.ceil(totalPages / 2);
+
+  const handleNext = () => {
+    if (currentPage < totalPages) {
+      getPurchases(currentPage + 1, pageSize);
+    }
   };
-  const purchase_total = productsSet.reduce(
-    (acc, product) =>
-      acc +
-      parseFloat(product.purchaseCost) * parseFloat(product.purchaseQuantity),
-    0
-  );
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    api
-      .post("/purchases/", {
-        items: productsSet?.map((product) => ({
-          p_item_product: getProductIdByName(product.productName),
-          p_item_cost: product.purchaseCost,
-          p_item_quantity: product.purchaseQuantity,
-        })),
-        purchase_total,
-      })
-      .then((res) => {
-        if (res.status === 201) {
-          toast({
-            title: "Purchase placed successfully!",
-          });
-        } else {
-          toast({
-            title: "Error",
-            description: "Order not created : " + res.status,
-          });
-        }
-        setProductsSet([
-          { productName: "", purchaseCost: "", purchaseQuantity: "" },
-        ]);
-        setShowDialog(false);
-        getPurchases();
-        setLoading(false);
-      })
-      .catch((err) => {
-        toast({
-          title: "Error",
-          description: "" + err,
-        });
-        setLoading(false);
-      });
+
+  const handlePrevious = () => {
+    if (currentPage > 1) {
+      getPurchases(currentPage - 1, pageSize);
+    }
   };
-  const productNames = productsList.map((product) => {
-    return {
-      id: product.id,
-      name: product.product_name,
-    };
-  });
+
+  const handlePageClick = (page) => {
+    getPurchases(page, pageSize);
+  };
+
+  const inputStyles =
+    "w-full rounded h-[50px] border-none text-black bg-gray-200 text-[16px] outline-none drop-shadow-sm transition-all duration-300 ease-in-out focus:bg-gray-100 focus:drop-shadow-lg focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0";
+
   if (loading) {
     return (
       <Skeleton
@@ -112,7 +101,10 @@ function PurchasesHistory() {
       <div className="mt-5">
         <CommonButton
           buttonText={"Create Purchase"}
-          onClick={() => setShowDialog(true)}
+          onClick={() => {
+            navigate("/");
+            setMode("Purchase");
+          }}
         />
       </div>
       {purchasesList?.length > 0 ? (
@@ -126,7 +118,10 @@ function PurchasesHistory() {
                 <p>{item.purchase_slug}</p>
                 <p>By :-{item.purchase_created_by}</p>
                 <p>{item.purchase_date}</p>
-                <p>Total : &#8377;{formatToIndianNumberSystem(item.purchase_total)}</p>
+                <p>
+                  Total : &#8377;
+                  {formatToIndianNumberSystem(item.purchase_total)}
+                </p>
               </AccordionTrigger>
               <AccordionContent className="bg-gray-300 rounded text-black p-3">
                 <div
@@ -162,13 +157,102 @@ function PurchasesHistory() {
       ) : (
         <div>No purchases found with the search phrase above.</div>
       )}
-      <CommonDialog
-        title={"Purchase Products"}
-        formControls={purchaseFormControls}
-        buttonText={"Purchase"}
-        searchOptions={productNames}
-        handleSubmit={handleSubmit}
-      />
+      {searchText.length < 2 && (
+        <Pagination className={"justify-between"}>
+          <div>
+            <Select
+              value={pageSize}
+              onValueChange={(value) => {
+                setPageSize(value);
+                getPurchases(1, value);
+              }}
+            >
+              <SelectTrigger className={inputStyles}>
+                <SelectValue
+                  placeholder="Select pagination size"
+                  className="text-black focus:text-black"
+                />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="30">30</SelectItem>
+                <SelectItem value="40">40</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <PaginationContent>
+            <CommonButton
+              buttonText={"← Previous"}
+              onClick={handlePrevious}
+              disabled={currentPage === 1}
+            />
+            {totalPages > 10 ? (
+              <>
+                <PaginationItem>
+                  <CommonButton
+                    buttonText={"1"}
+                    onClick={() => handlePageClick(1)}
+                    disabled={currentPage === 1}
+                  />
+                </PaginationItem>
+                <PaginationItem>
+                  <PaginationEllipsis />
+                </PaginationItem>
+                <PaginationItem>
+                  <CommonButton
+                    buttonText={middlePage - 1}
+                    onClick={() => handlePageClick(middlePage - 1)}
+                    disabled={currentPage === middlePage - 1}
+                  />
+                </PaginationItem>
+                <PaginationItem>
+                  <CommonButton
+                    buttonText={middlePage}
+                    onClick={() => handlePageClick(middlePage)}
+                    disabled={currentPage === middlePage}
+                  />
+                </PaginationItem>
+                <PaginationItem>
+                  <CommonButton
+                    buttonText={middlePage + 1}
+                    onClick={() => handlePageClick(middlePage + 1)}
+                    disabled={currentPage === middlePage + 1}
+                  />
+                </PaginationItem>
+                <PaginationItem>
+                  <PaginationEllipsis />
+                </PaginationItem>
+                <PaginationItem>
+                  <CommonButton
+                    buttonText={totalPages}
+                    onClick={() => handlePageClick(totalPages)}
+                    disabled={currentPage === totalPages}
+                  />
+                </PaginationItem>
+              </>
+            ) : (
+              <>
+                {Array.from({ length: totalPages }, (_, index) => (
+                  <PaginationItem key={index + 1}>
+                    <CommonButton
+                      buttonText={String(index + 1)}
+                      onClick={() => handlePageClick(index + 1)}
+                      disabled={currentPage === index + 1}
+                    />
+                  </PaginationItem>
+                ))}
+              </>
+            )}
+            <CommonButton
+              buttonText={"Next →"}
+              onClick={handleNext}
+              disabled={currentPage === totalPages}
+            />
+          </PaginationContent>
+        </Pagination>
+      )}
     </div>
   );
 }

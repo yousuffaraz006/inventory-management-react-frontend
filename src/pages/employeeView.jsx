@@ -65,8 +65,9 @@ function EmployeeView({
     customerEmail,
     setPhoneNo,
     phoneNo,
+    mode,
+    setMode,
   } = useContext(ContextComponent);
-  const [mode, setMode] = useState("");
   const now = new Date();
   const day = now.getDate();
   const month = now.toLocaleString("default", { month: "long" });
@@ -83,8 +84,8 @@ function EmployeeView({
   const createSale = async (e) => {
     e.preventDefault();
     setLoading(true);
-    try {
-      await api.post("/sales/", {
+    api
+      .post("/sales/", {
         sale_customer: getCustomerIdByName(customerValue),
         sale_total: totalAmt,
         items: productsSet?.map((product) => ({
@@ -92,16 +93,27 @@ function EmployeeView({
           s_item_price: product.productPrice,
           s_item_quantity: product.productQuantity,
         })),
+      })
+      .then((res) => {
+        if (res.status === 201) {
+          toast({
+            title: "Sale placed successfully!",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "Sale not created : " + res.status,
+          });
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        toast({
+          title: "Error",
+          description: "" + err,
+        });
+        setLoading(false);
       });
-      setLoading(false);
-      toast({
-        title: "Sale placed successfully!",
-      });
-      navigate("/");
-    } catch (error) {
-      console.error("Error creating sale:", error);
-      setLoading(false);
-    }
   };
   const createPurchase = async (e) => {
     e.preventDefault();
@@ -123,7 +135,7 @@ function EmployeeView({
         } else {
           toast({
             title: "Error",
-            description: "Order not created : " + res.status,
+            description: "Purchase not created : " + res.status,
           });
         }
         setLoading(false);
@@ -151,7 +163,12 @@ function EmployeeView({
         <TabsList className="w-full h-auto bg-black text-white">
           <TabsTrigger
             value="sale"
-            onClick={() => setMode("Sale")}
+            onClick={() => {
+              setMode("Sale");
+              setProductsSet([
+                { product: "", productPrice: "", productQuantity: "1" },
+              ]);
+            }}
             className={`mx-2 text-2xl hover:bg-white hover:text-black ${
               mode === "Sale" ? "bg-white text-black" : ""
             }`}
