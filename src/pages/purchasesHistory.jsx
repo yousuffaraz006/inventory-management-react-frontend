@@ -53,7 +53,7 @@ function PurchasesHistory() {
     {
       searchText.length > 1
         ? api
-            .get(`http://127.0.0.1:8000/search-purchases/?search=${searchText}`)
+            .get(`https://inventorymanager.pythonanywhere.com/search-purchases/?search=${searchText}`)
             .then((res) => {
               setPurchasesList(res.data);
               console.log(res.data);

@@ -59,7 +59,7 @@ function SalesHistory() {
     {
       searchText.length > 1
         ? api
-            .get(`http://127.0.0.1:8000/search-sales/?search=${searchText}`)
+            .get(`https://inventorymanager.pythonanywhere.com/search-sales/?search=${searchText}`)
             .then((res) => {
               setSalesList(res.data);
               console.log(res.data);

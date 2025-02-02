@@ -54,7 +54,7 @@ function Products() {
   };
   useEffect(() => {
     api
-      .get(`http://127.0.0.1:8000/search-products/?search=${searchText}`)
+      .get(`https://inventorymanager.pythonanywhere.com/search-products/?search=${searchText}`)
       .then((res) => {
         const enrichedProducts = computeStock(
           res.data,
