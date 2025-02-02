@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import SignUp from "./pages/signUp";
-import SignIn from "./pages/signIn";
+import SignUp from "./pages/signup";
+import SignIn from "./pages/signin";
 import CommonLayout from "./components/common-layout";
 import HomePage from "./pages/home";
 import NotFound from "./pages/notFound";
